@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AS Infra Developers — Infrastructure, Renovation, Redevelopment, Construction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#10243D;
+    --navy-2:#16324F;
+    --navy-3:#0B1A2C;
+    --paper:#EDEAE2;
+    --paper-2:#F7F5F0;
+    --ink:#1B2B3A;
+    --steel:#6B7686;
+    --rust:#C4622D;
+    --line:rgba(27,43,58,0.16);
+    --line-dark:rgba(237,234,226,0.2);
+    --mono:'IBM Plex Mono', monospace;
+    --sans:'IBM Plex Sans', sans-serif;
+    --disp:'Big Shoulders Display', sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:var(--sans);
+    background:var(--paper);
+    color:var(--ink);
+    overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none;}
+  ::selection{background:var(--rust);color:var(--paper-2);}
+
+  /* ---------- Coordinate frame ---------- */
+  .frame{position:fixed;inset:0;pointer-events:none;z-index:40;}
+  .frame-edge{position:absolute;font-family:var(--mono);font-size:10px;letter-spacing:.05em;color:var(--steel);opacity:.55;}
+  .ruler-top{position:absolute;top:0;left:0;right:0;height:22px;display:flex;justify-content:space-between;padding:0 18px;}
+  .ruler-left{position:absolute;top:0;bottom:0;left:0;width:22px;display:flex;flex-direction:column;justify-content:space-between;padding:22px 0 40px;writing-mode:vertical-rl;align-items:center;}
+  .ruler-top span, .ruler-left span{opacity:.6;}
+  .corner-tick{position:absolute;width:8px;height:8px;border:1px solid var(--steel);opacity:.4;}
+  .corner-tick.tl{top:10px;left:10px;border-right:none;border-bottom:none;}
+  .corner-tick.tr{top:10px;right:10px;border-left:none;border-bottom:none;}
+  .corner-tick.bl{bottom:10px;left:10px;border-right:none;border-top:none;}
+  .corner-tick.br{bottom:10px;right:10px;border-left:none;border-top:none;}
+
+  section, header, footer{position:relative;}
+  .section-inner{max-width:1200px;margin:0 auto;padding:0 40px;}
+  @media(max-width:640px){.section-inner{padding:0 22px;}}
+
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--rust);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .eyebrow::before{content:'';width:26px;height:1px;background:var(--rust);}
+
+  h1,h2,h3{font-family:var(--disp);font-weight:800;line-height:.92;letter-spacing:-.01em;text-transform:uppercase;}
+
+  /* ---------- Nav ---------- */
+  header{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:22px 40px;
+    font-family:var(--mono);
+    transition:background .3s ease, padding .3s ease, border-color .3s ease;
+    border-bottom:1px solid transparent;
+  }
+  header.scrolled{background:rgba(237,234,226,.92);backdrop-filter:blur(6px);padding:14px 40px;border-bottom-color:var(--line);}
+  .logo{display:flex;align-items:center;gap:12px;font-family:var(--disp);}
+  .logo-mark{width:38px;height:38px;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;flex-shrink:0;}
+  header.scrolled .logo-mark{border-color:var(--ink);}
+  .logo-text{font-size:15px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;}
+  .logo-text small{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.18em;font-weight:400;color:var(--steel);text-transform:uppercase;margin-top:1px;}
+  nav{display:flex;align-items:center;gap:34px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;}
+  nav a{position:relative;padding-bottom:3px;}
+  nav a::after{content:'';position:absolute;left:0;bottom:0;width:0;height:1px;background:var(--rust);transition:width .25s ease;}
+  nav a:hover::after{width:100%;}
+  .nav-cta{border:1px solid var(--ink);padding:9px 18px;font-size:11px;}
+  .nav-cta:hover{background:var(--ink);color:var(--paper);}
+  .burger{display:none;flex-direction:column;gap:5px;cursor:pointer;}
+  .burger span{width:22px;height:2px;background:var(--ink);}
+  @media(max-width:860px){
+    nav{position:fixed;top:0;right:-100%;height:100vh;width:78%;max-width:320px;background:var(--navy);flex-direction:column;justify-content:center;align-items:flex-start;padding:0 40px;gap:26px;transition:right .35s ease;color:var(--paper);}
+    nav.open{right:0;}
+    nav a{color:var(--paper-2);}
+    .nav-cta{border-color:var(--paper-2);}
+    .burger{display:flex;z-index:60;}
+    header{padding:18px 22px;}
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    min-height:100vh;
+    background:var(--navy);
+    color:var(--paper-2);
+    display:flex;align-items:center;
+    padding-top:90px;
+    overflow:hidden;
+  }
+  .hero .section-inner{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;width:100%;}
+  @media(max-width:900px){.hero .section-inner{grid-template-columns:1fr;}}
+  .hero h1{font-size:clamp(48px,8vw,104px);}
+  .hero h1 .rust{color:var(--rust);}
+  .hero p.lead{font-family:var(--sans);font-size:17px;color:#C7CDD6;max-width:440px;margin-top:26px;line-height:1.6;}
+  .hero-ctas{display:flex;gap:16px;margin-top:38px;flex-wrap:wrap;}
+  .btn{
+    font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+    padding:15px 26px;border:1px solid var(--paper-2);display:inline-flex;align-items:center;gap:10px;
+    transition:all .25s ease;
+  }
+  .btn-solid{background:var(--rust);border-color:var(--rust);color:var(--navy-3);font-weight:600;}
+  .btn-solid:hover{background:transparent;color:var(--rust);}
+  .btn-ghost:hover{background:var(--paper-2);color:var(--navy);}
+  .hero-meta{display:flex;gap:34px;margin-top:56px;font-family:var(--mono);font-size:11px;color:#8FA0B3;flex-wrap:wrap;}
+  .hero-meta div span{display:block;font-family:var(--disp);font-size:26px;color:var(--paper-2);font-weight:700;}
+
+  .hero-art{position:relative;height:460px;}
+  .hero-art svg{width:100%;height:100%;}
+  .draw-line{fill:none;stroke:#8FA0B3;stroke-width:1.2;stroke-dasharray:1;stroke-dashoffset:0;}
+  .draw-line.accent{stroke:var(--rust);stroke-width:1.6;}
+  .fill-dim{fill:#8FA0B3;opacity:.35;}
+
+  /* ---------- Section base ---------- */
+  .section{padding:120px 0;}
+  @media(max-width:640px){.section{padding:80px 0;}}
+  .section.dark{background:var(--navy);color:var(--paper-2);}
+  .section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:30px;margin-bottom:70px;flex-wrap:wrap;}
+  .section-head h2{font-size:clamp(34px,4.6vw,58px);}
+  .section-head p{font-family:var(--sans);color:var(--steel);max-width:340px;font-size:14.5px;line-height:1.6;}
+  .section.dark .section-head p{color:#9BAAB9;}
+
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease, transform .7s ease;}
+  .reveal.in{opacity:1;transform:translateY(0);}
+
+  /* ---------- Services ---------- */
+  .services-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);}
+  @media(max-width:900px){.services-grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:560px){.services-grid{grid-template-columns:1fr;}}
+  .service-card{background:var(--paper);padding:38px 28px;min-height:320px;display:flex;flex-direction:column;transition:background .3s ease;}
+  .service-card:hover{background:var(--paper-2);}
+  .service-tag{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--steel);text-transform:uppercase;margin-bottom:26px;}
+  .service-icon{width:44px;height:44px;color:var(--ink);margin-bottom:22px;}
+  .service-card:hover .service-icon{color:var(--rust);}
+  .service-icon svg{width:100%;height:100%;}
+  .service-card h3{font-size:23px;letter-spacing:0;margin-bottom:12px;line-height:1.05;}
+  .service-card p{font-size:13.5px;color:var(--steel);line-height:1.6;flex:1;}
+  .service-num{font-family:var(--mono);font-size:11px;color:var(--line);margin-top:20px;}
+
+  /* ---------- Process ---------- */
+  .process-line{position:relative;padding-top:20px;}
+  .process-track{position:relative;display:flex;border-top:1px solid var(--line-dark);}
+  .process-step{flex:1;padding:26px 18px 0;position:relative;}
+  .process-step::before{content:'';position:absolute;top:-1px;left:0;width:9px;height:9px;border:1px solid var(--rust);background:var(--navy);transform:translate(-4px,-4.5px) rotate(45deg);}
+  .process-num{font-family:var(--mono);font-size:12px;color:var(--rust);display:block;margin-bottom:12px;}
+  .process-step h4{font-family:var(--disp);font-weight:700;font-size:19px;text-transform:uppercase;margin-bottom:10px;letter-spacing:.01em;}
+  .process-step p{font-family:var(--sans);font-size:13px;color:#9BAAB9;line-height:1.6;}
+  @media(max-width:860px){.process-track{flex-direction:column;border-top:none;border-left:1px solid var(--line-dark);}
+    .process-step{padding:0 0 44px 26px;}
+    .process-step::before{top:0;left:-1px;transform:translate(-4.5px,-4px) rotate(45deg);}
+  }
+
+  /* ---------- Stats ---------- */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+  @media(max-width:700px){.stats-row{grid-template-columns:repeat(2,1fr);}}
+  .stat{padding:34px 24px;border-right:1px solid var(--line);}
+  .stat:last-child{border-right:none;}
+  .stat .num{font-family:var(--disp);font-size:clamp(38px,5vw,58px);font-weight:800;color:var(--ink);display:flex;align-items:baseline;gap:4px;}
+  .stat .num small{font-family:var(--mono);font-size:16px;color:var(--rust);font-weight:500;}
+  .stat .label{font-family:var(--mono);font-size:11px;color:var(--steel);letter-spacing:.08em;text-transform:uppercase;margin-top:8px;}
+
+  /* ---------- Projects ---------- */
+  .projects-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;}
+  @media(max-width:900px){.projects-grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:600px){.projects-grid{grid-template-columns:1fr;}}
+  .project-tile{border:1px solid var(--line);background:var(--paper-2);overflow:hidden;transition:transform .3s ease, box-shadow .3s ease;}
+  .project-tile:hover{transform:translateY(-6px);box-shadow:0 18px 30px -18px rgba(16,36,61,.35);}
+  .project-plan{aspect-ratio:4/3;border-bottom:1px solid var(--line);position:relative;background:
+    repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(27,43,58,.06) 20px),
+    repeating-linear-gradient(90deg, transparent, transparent 19px, rgba(27,43,58,.06) 20px);
+  }
+  .project-plan svg{width:100%;height:100%;}
+  .project-coord{position:absolute;top:10px;left:10px;font-family:var(--mono);font-size:10px;color:var(--steel);letter-spacing:.06em;}
+  .project-body{padding:20px 22px 24px;}
+  .project-body .tag{font-family:var(--mono);font-size:10px;color:var(--rust);text-transform:uppercase;letter-spacing:.1em;}
+  .project-body h4{font-family:var(--disp);font-size:21px;font-weight:700;text-transform:uppercase;margin:8px 0 6px;}
+  .project-body p{font-size:12.5px;color:var(--steel);}
+
+  /* ---------- CTA banner ---------- */
+  .cta-banner{background:var(--ink);color:var(--paper-2);padding:100px 0;text-align:center;}
+  .cta-banner h2{font-size:clamp(34px,6vw,72px);max-width:900px;margin:0 auto 30px;}
+  .cta-banner .btn-solid{margin-top:6px;}
+
+  /* ---------- Footer / Title block ---------- */
+  footer{background:var(--navy-3);color:#9BAAB9;padding:0;}
+  .titleblock{border-top:2px solid var(--rust);}
+  .tb-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;}
+  @media(max-width:800px){.tb-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:480px){.tb-grid{grid-template-columns:1fr;}}
+  .tb-cell{padding:34px 30px;border-right:1px solid var(--line-dark);border-bottom:1px solid var(--line-dark);}
+  .tb-cell:last-child{border-right:none;}
+  .tb-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--rust);margin-bottom:12px;}
+  .tb-cell h5{font-family:var(--disp);font-size:20px;text-transform:uppercase;color:var(--paper-2);margin-bottom:14px;}
+  .tb-cell a, .tb-cell p{display:block;font-size:13px;line-height:1.9;color:#B7C1CC;}
+  .tb-cell a:hover{color:var(--paper-2);}
+  .tb-bottom{display:flex;justify-content:space-between;padding:20px 30px;font-family:var(--mono);font-size:10.5px;color:#5E6E7E;flex-wrap:wrap;gap:10px;border-top:1px solid var(--line-dark);}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <div class="corner-tick tl"></div><div class="corner-tick tr"></div>
+  <div class="corner-tick bl"></div><div class="corner-tick br"></div>
+  <div class="ruler-top" id="rulerTop"></div>
+  <div class="ruler-left" id="rulerLeft"></div>
+</div>
+
+<header id="siteHeader">
+  <div class="logo">
+    <div class="logo-mark">AS</div>
+    <div class="logo-text">AS Infra<br>Developers<small>Est. Site &middot; Pune, MH</small></div>
+  </div>
+  <nav id="siteNav">
+    <a href="#services">Services</a>
+    <a href="#process">Process</a>
+    <a href="#projects">Projects</a>
+    <a href="#contact" class="nav-cta">Get a Quote</a>
+  </nav>
+  <div class="burger" id="burger"><span></span><span></span><span></span></div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="section-inner">
+    <div>
+      <div class="eyebrow">AS Infra Developers &middot; Pune, Maharashtra</div>
+      <h1>Every structure<br>starts as <span class="rust">a line.</span></h1>
+      <p class="lead">We take projects from the first survey peg to the final handover key — infrastructure development, renovation, redevelopment and ground-up construction, drawn, planned and built in-house.</p>
+      <div class="hero-ctas">
+        <a href="#contact" class="btn btn-solid">Get a Quote →</a>
+        <a href="#projects" class="btn btn-ghost">View Projects</a>
+      </div>
+      <div class="hero-meta">
+        <div><span>04</span>Core Disciplines</div>
+        <div><span>360°</span>Survey to Handover</div>
+        <div><span>MH</span>Licensed &amp; Insured</div>
+      </div>
+    </div>
+    <div class="hero-art">
+      <svg viewBox="0 0 400 460" xmlns="http://www.w3.org/2000/svg" id="heroSvg">
+        <!-- ground line -->
+        <line class="draw-line" x1="10" y1="420" x2="390" y2="420"/>
+        <!-- building outline -->
+        <rect class="draw-line accent" x="60" y="120" width="140" height="300"/>
+        <!-- floor divisions -->
+        <line class="draw-line" x1="60" y1="160" x2="200" y2="160"/>
+        <line class="draw-line" x1="60" y1="200" x2="200" y2="200"/>
+        <line class="draw-line" x1="60" y1="240" x2="200" y2="240"/>
+        <line class="draw-line" x1="60" y1="280" x2="200" y2="280"/>
+        <line class="draw-line" x1="60" y1="320" x2="200" y2="320"/>
+        <line class="draw-line" x1="60" y1="360" x2="200" y2="360"/>
+        <!-- windows -->
+        <rect class="draw-line" x="75" y="170" width="24" height="20"/>
+        <rect class="draw-line" x="115" y="170" width="24" height="20"/>
+        <rect class="draw-line" x="155" y="170" width="24" height="20"/>
+        <rect class="draw-line" x="75" y="210" width="24" height="20"/>
+        <rect class="draw-line" x="115" y="210" width="24" height="20"/>
+        <rect class="draw-line" x="155" y="210" width="24" height="20"/>
+        <rect class="draw-line" x="75" y="250" width="24" height="20"/>
+        <rect class="draw-line" x="115" y="250" width="24" height="20"/>
+        <rect class="draw-line" x="155" y="250" width="24" height="20"/>
+        <rect class="draw-line" x="75" y="290" width="24" height="20"/>
+        <rect class="draw-line" x="115" y="290" width="24" height="20"/>
+        <rect class="draw-line" x="155" y="290" width="24" height="20"/>
+        <rect class="draw-line" x="75" y="330" width="24" height="20"/>
+        <rect class="draw-line" x="115" y="330" width="24" height="20"/>
+        <rect class="draw-line" x="155" y="330" width="24" height="20"/>
+        <!-- door -->
+        <rect class="draw-line accent" x="115" y="370" width="30" height="50"/>
+        <!-- crane -->
+        <line class="draw-line" x1="230" y1="420" x2="230" y2="60"/>
+        <line class="draw-line" x1="230" y1="60" x2="350" y2="60"/>
+        <line class="draw-line" x1="230" y1="60" x2="210" y2="80"/>
+        <line class="draw-line" x1="260" y1="60" x2="260" y2="140"/>
+        <line class="draw-line accent" x1="260" y1="140" x2="245" y2="150"/>
+        <line class="draw-line accent" x1="260" y1="140" x2="275" y2="150"/>
+        <line class="draw-line" x1="330" y1="60" x2="330" y2="90"/>
+        <!-- dimension line -->
+        <line class="draw-line" x1="60" y1="440" x2="200" y2="440"/>
+        <line class="draw-line" x1="60" y1="434" x2="60" y2="446"/>
+        <line class="draw-line" x1="200" y1="434" x2="200" y2="446"/>
+        <text x="110" y="455" fill="#8FA0B3" font-family="IBM Plex Mono" font-size="10">12.4 M</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="section" id="services">
+  <div class="section-inner">
+    <div class="section-head reveal">
+      <div>
+        <div class="eyebrow">What We Do</div>
+        <h2>Four disciplines,<br>one site office.</h2>
+      </div>
+      <p>Each service below runs as its own drawing layer — switched on independently or combined on a single project, from first pour to final finish.</p>
+    </div>
+
+    <div class="services-grid reveal">
+      <div class="service-card">
+        <div class="service-tag">Layer 01 / Infra</div>
+        <div class="service-icon">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 38 L20 10 L28 10 L44 38"/><path d="M13 24 H35"/><circle cx="20" cy="34" r="2"/><circle cx="28" cy="34" r="2"/><path d="M4 38 H44"/></svg>
+        </div>
+        <h3>Infrastructure Development</h3>
+        <p>Roads, site grading, drainage, utility trenching and earthworks — the groundwork that everything else gets built on.</p>
+        <div class="service-num">01/04</div>
+      </div>
+
+      <div class="service-card">
+        <div class="service-tag">Layer 02 / Renovate</div>
+        <div class="service-icon">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M30 6 L42 18 L22 38 L10 40 L12 28 Z"/><path d="M27 9 L39 21"/><path d="M8 44 H26"/></svg>
+        </div>
+        <h3>Renovation Work</h3>
+        <p>Interior and exterior refurbishment, structural repairs, façade upgrades and MEP overhauls for existing properties.</p>
+        <div class="service-num">02/04</div>
+      </div>
+
+      <div class="service-card">
+        <div class="service-tag">Layer 03 / Redevelop</div>
+        <div class="service-icon">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="26" width="12" height="16"/><path d="M20 34 H30"/><path d="M25 29 L31 34 L25 39"/><rect x="34" y="10" width="12" height="32"/><path d="M37 16 H43 M37 22 H43 M37 28 H43"/></svg>
+        </div>
+        <h3>Redevelopment</h3>
+        <p>Full-scale redevelopment of ageing structures and housing societies into modern, code-compliant buildings.</p>
+        <div class="service-num">03/04</div>
+      </div>
+
+      <div class="service-card">
+        <div class="service-tag">Layer 04 / Build</div>
+        <div class="service-icon">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 44 V16 L18 8 V44"/><path d="M6 24 H18 M6 34 H18"/><path d="M24 44 V22 L34 22 V44"/><path d="M24 30 H34"/><path d="M40 44 V30 L44 30 V44"/></svg>
+        </div>
+        <h3>Construction</h3>
+        <p>Ground-up residential and commercial construction — RCC framework, brickwork, finishing, all under one roof.</p>
+        <div class="service-num">04/04</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section class="section dark" id="process">
+  <div class="section-inner">
+    <div class="section-head reveal">
+      <div>
+        <div class="eyebrow">How A Project Runs</div>
+        <h2>Survey to<br>handover.</h2>
+      </div>
+      <p>The same five-stage sequence governs every job, regardless of size — so nothing gets skipped and nobody is left guessing what's next.</p>
+    </div>
+
+    <div class="process-line reveal">
+      <div class="process-track">
+        <div class="process-step"><span class="process-num">01</span><h4>Site Survey</h4><p>Land assessment, soil testing and measured drawings of the existing site.</p></div>
+        <div class="process-step"><span class="process-num">02</span><h4>Design &amp; Plan</h4><p>Layouts, structural drawings and material specification, signed off with you.</p></div>
+        <div class="process-step"><span class="process-num">03</span><h4>Approvals</h4><p>Permits, society NOCs and civic documentation handled before a spade moves.</p></div>
+        <div class="process-step"><span class="process-num">04</span><h4>Execution</h4><p>Site crew, materials and timeline managed under one dedicated supervisor.</p></div>
+        <div class="process-step"><span class="process-num">05</span><h4>Handover</h4><p>Final inspection, snag-list closure and documentation delivered with the keys.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="section" style="padding-top:0;padding-bottom:0;">
+  <div class="section-inner">
+    <div class="stats-row reveal">
+      <div class="stat"><div class="num">15<small>+</small></div><div class="label">Years On Site</div></div>
+      <div class="stat"><div class="num">120<small>+</small></div><div class="label">Projects Delivered</div></div>
+      <div class="stat"><div class="num">8<small>L+</small></div><div class="label">Sq. Ft. Built</div></div>
+      <div class="stat"><div class="num">98<small>%</small></div><div class="label">On-Time Handover</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section class="section" id="projects">
+  <div class="section-inner">
+    <div class="section-head reveal">
+      <div>
+        <div class="eyebrow">Selected Sites</div>
+        <h2>Recent<br>plans on file.</h2>
+      </div>
+      <p>A sample of site plans from current and completed work. Swap in project photography as jobs are documented.</p>
+    </div>
+
+    <div class="projects-grid reveal">
+
+      <div class="project-tile">
+        <div class="project-plan">
+          <div class="project-coord">SITE A—04</div>
+          <svg viewBox="0 0 200 150"><rect x="30" y="30" width="70" height="50" fill="none" stroke="#1B2B3A" stroke-width="1"/><rect x="115" y="45" width="55" height="70" fill="none" stroke="#C4622D" stroke-width="1"/><line x1="0" y1="125" x2="200" y2="125" stroke="#1B2B3A" stroke-width="1"/><line x1="60" y1="125" x2="60" y2="150" stroke="#1B2B3A" stroke-width=".6"/></svg>
+        </div>
+        <div class="project-body">
+          <div class="tag">Redevelopment</div>
+          <h4>Sunview Residency</h4>
+          <p>36-unit society redevelopment, Kothrud.</p>
+        </div>
+      </div>
+
+      <div class="project-tile">
+        <div class="project-plan">
+          <div class="project-coord">SITE B—11</div>
+          <svg viewBox="0 0 200 150"><rect x="20" y="20" width="160" height="30" fill="none" stroke="#1B2B3A" stroke-width="1"/><rect x="20" y="60" width="70" height="70" fill="none" stroke="#1B2B3A" stroke-width="1"/><rect x="110" y="60" width="70" height="70" fill="none" stroke="#C4622D" stroke-width="1"/></svg>
+        </div>
+        <div class="project-body">
+          <div class="tag">Construction</div>
+          <h4>Baner Commercial Plaza</h4>
+          <p>Ground-up G+4 commercial build.</p>
+        </div>
+      </div>
+
+      <div class="project-tile">
+        <div class="project-plan">
+          <div class="project-coord">SITE C—07</div>
+          <svg viewBox="0 0 200 150"><rect x="40" y="25" width="120" height="100" fill="none" stroke="#1B2B3A" stroke-width="1"/><line x1="40" y1="60" x2="160" y2="60" stroke="#C4622D" stroke-width="1"/><line x1="40" y1="95" x2="160" y2="95" stroke="#1B2B3A" stroke-width=".6"/></svg>
+        </div>
+        <div class="project-body">
+          <div class="tag">Renovation</div>
+          <h4>Deccan Heritage Bungalow</h4>
+          <p>Full interior and façade renovation.</p>
+        </div>
+      </div>
+
+      <div class="project-tile">
+        <div class="project-plan">
+          <div class="project-coord">SITE D—02</div>
+          <svg viewBox="0 0 200 150"><path d="M10 130 L60 40 L140 40 L190 130 Z" fill="none" stroke="#1B2B3A" stroke-width="1"/><line x1="10" y1="130" x2="190" y2="130" stroke="#C4622D" stroke-width="1"/></svg>
+        </div>
+        <div class="project-body">
+          <div class="tag">Infra Development</div>
+          <h4>Wagholi Access Road</h4>
+          <p>1.2 km internal road and drainage.</p>
+        </div>
+      </div>
+
+      <div class="project-tile">
+        <div class="project-plan">
+          <div class="project-coord">SITE E—19</div>
+          <svg viewBox="0 0 200 150"><rect x="25" y="25" width="150" height="100" fill="none" stroke="#1B2B3A" stroke-width="1"/><rect x="45" y="45" width="45" height="30" fill="none" stroke="#1B2B3A" stroke-width=".6"/><rect x="110" y="45" width="45" height="30" fill="none" stroke="#1B2B3A" stroke-width=".6"/><rect x="45" y="90" width="110" height="20" fill="none" stroke="#C4622D" stroke-width="1"/></svg>
+        </div>
+        <div class="project-body">
+          <div class="tag">Construction</div>
+          <h4>Hinjewadi IT Annex</h4>
+          <p>Office block shell &amp; core, phase two.</p>
+        </div>
+      </div>
+
+      <div class="project-tile">
+        <div class="project-plan">
+          <div class="project-coord">SITE F—33</div>
+          <svg viewBox="0 0 200 150"><rect x="30" y="20" width="60" height="110" fill="none" stroke="#1B2B3A" stroke-width="1"/><rect x="100" y="50" width="70" height="80" fill="none" stroke="#C4622D" stroke-width="1"/><line x1="30" y1="20" x2="90" y2="20" stroke-dasharray="4 3" stroke="#1B2B3A" stroke-width=".6"/></svg>
+        </div>
+        <div class="project-body">
+          <div class="tag">Redevelopment</div>
+          <h4>Aundh Co-op Society</h4>
+          <p>Old chawl to G+7 redevelopment.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-banner reveal">
+  <div class="section-inner">
+    <h2>Have a site that needs drawing up?</h2>
+    <a href="#contact" class="btn btn-solid">Talk To Our Site Office →</a>
+  </div>
+</section>
+
+<!-- FOOTER / TITLE BLOCK -->
+<footer id="contact">
+  <div class="titleblock">
+    <div class="tb-grid">
+      <div class="tb-cell">
+        <div class="tb-label">Project</div>
+        <h5>AS Infra Developers</h5>
+        <p>Infrastructure Development &middot; Renovation &middot; Redevelopment &middot; Construction, based in Pune, Maharashtra.</p>
+      </div>
+      <div class="tb-cell">
+        <div class="tb-label">Contact</div>
+        <a href="tel:+91XXXXXXXXXX">+91 XXXXX XXXXX</a>
+        <a href="mailto:info@asinfradevelopers.in">info@asinfradevelopers.in</a>
+        <p>Pune, Maharashtra, India</p>
+      </div>
+      <div class="tb-cell">
+        <div class="tb-label">Navigate</div>
+        <a href="#services">Services</a>
+        <a href="#process">Process</a>
+        <a href="#projects">Projects</a>
+      </div>
+      <div class="tb-cell">
+        <div class="tb-label">Drawing No.</div>
+        <p>ASID—2026—001</p>
+        <div class="tb-label" style="margin-top:16px;">Scale</div>
+        <p>NTS</p>
+      </div>
+    </div>
+    <div class="tb-bottom">
+      <span>© 2026 AS Infra Developers. All rights reserved.</span>
+      <span>Rev. A &middot; Drawn for web &middot; Not to scale</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Header scroll state
+  const header = document.getElementById('siteHeader');
+  window.addEventListener('scroll', () => {
+    header.classList.toggle('scrolled', window.scrollY > 40);
+  });
+
+  // Mobile nav
+  const burger = document.getElementById('burger');
+  const nav = document.getElementById('siteNav');
+  burger.addEventListener('click', () => nav.classList.toggle('open'));
+  nav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => nav.classList.remove('open')));
+
+  // Reveal on scroll
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, {threshold:0.15});
+  reveals.forEach(el => io.observe(el));
+
+  // Ruler ticks
+  const rulerTop = document.getElementById('rulerTop');
+  const rulerLeft = document.getElementById('rulerLeft');
+  const letters = ['A','B','C','D','E','F','G','H'];
+  letters.forEach(l => { const s = document.createElement('span'); s.textContent = l; rulerTop.appendChild(s); });
+  for(let i=1;i<=10;i++){ const s = document.createElement('span'); s.textContent = i; rulerLeft.appendChild(s); }
+
+  // Hero line-draw animation
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!prefersReduced){
+    document.querySelectorAll('#heroSvg .draw-line').forEach((el, i) => {
+      const len = el.getTotalLength ? el.getTotalLength() : 100;
+      el.style.strokeDasharray = len;
+      el.style.strokeDashoffset = len;
+      el.style.transition = 'stroke-dashoffset 1.1s ease';
+      setTimeout(() => { el.style.strokeDashoffset = 0; }, 150 + i*18);
+    });
+  }
+</script>
+
+</body>
+</html>
